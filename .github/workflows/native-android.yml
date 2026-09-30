@@ -20,11 +20,14 @@ jobs:
             AndroidApp/app/src/main/java/com/harvey/pvpagent/VisionPolicy.java \
             Tools/vision-test/com/harvey/pvpagent/VisionPolicyCheck.java
           java -cp build/vision-check com.harvey.pvpagent.VisionPolicyCheck
-      - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Install Android platform and build tools
+        run: |
+          SDK_MANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          test -n "$SDK_MANAGER"
+          "$SDK_MANAGER" 'platforms;android-35' 'build-tools;35.0.0'
       - run: gradle -p AndroidApp :app:assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
         with:
