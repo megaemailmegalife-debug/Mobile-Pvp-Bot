@@ -2,7 +2,7 @@
 
 An Android-only research project for permitted private arenas. The intended boundary is visible screen pixels, local perception, a versioned ONNX policy, bounded gestures, and explicit Android consent. No game memory, packets, or hidden state are used.
 
-**Status:** The new `AndroidApp/` has a native background colour-tracking agent with explicit capture/accessibility controls. It is a limited heuristic for distinctive opponent colours in permitted training arenas, **not** a trained PPO PvP policy. No Android APK or on-device verification exists yet. See `PROJECT_LEDGER.md`.
+**Status:** The native `AndroidApp/` compiles to a debug APK in GitHub Actions. It has a background colour-tracking agent with explicit capture/accessibility controls. It is a limited heuristic for distinctive opponent colours in permitted training arenas, **not** a trained PPO PvP policy. On-device behaviour has not been verified. See `PROJECT_LEDGER.md`.
 
 ## Layout
 
@@ -21,7 +21,7 @@ An Android-only research project for permitted private arenas. The intended boun
 4. Allow notification permission. In Android settings, explicitly enable the app's accessibility service. Android may require an additional **Allow restricted settings** step for a sideloaded accessibility app.
 5. Save a screenshot of an allowed training arena with a visually distinctive opponent and your touch controls. Import it, then tap the opponent's colour, attack button, safe camera area and joystick centre. Grant capture and choose the entire display rather than this app alone. Arm the agent and switch to Minecraft within five seconds. The notification stops capture and input.
 
-This repository has not been pushed to GitHub. No credentials are included. The Android SDK and Gradle are absent from the present environment and cannot be downloaded through its network policy, so the APK cannot be built here. The workflow has not yet run.
+The source is in `megaemailmegalife-debug/Mobile-Pvp-Bot`. No credentials are included. The Android SDK and Gradle are absent from the local environment; the APK is built on GitHub Actions. A successful cloud compile does not establish on-device gameplay performance.
 
 ## Permissions and safety
 

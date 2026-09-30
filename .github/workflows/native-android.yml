@@ -29,6 +29,8 @@ jobs:
           test -n "$SDK_MANAGER"
           "$SDK_MANAGER" 'platforms;android-35' 'build-tools;35.0.0'
       - run: gradle -p AndroidApp :app:assembleDebug --stacktrace
+      - name: Verify installable APK signature
+        run: "$ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose AndroidApp/app/build/outputs/apk/debug/app-debug.apk"
       - uses: actions/upload-artifact@v4
         with:
           name: PvPVisionAgent-v0.2.0-debug-apk
