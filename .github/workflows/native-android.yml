@@ -1,0 +1,33 @@
+name: Native Android APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Verify vision detector
+        run: |
+          mkdir -p build/vision-check
+          java com.sun.tools.javac.Main -d build/vision-check \
+            Tools/vision-test/android/graphics/Color.java \
+            AndroidApp/app/src/main/java/com/harvey/pvpagent/VisionPolicy.java \
+            Tools/vision-test/com/harvey/pvpagent/VisionPolicyCheck.java
+          java -cp build/vision-check com.harvey.pvpagent.VisionPolicyCheck
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - run: gradle -p AndroidApp :app:assembleDebug --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PvPVisionAgent-v0.2.0-debug-apk
+          path: AndroidApp/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

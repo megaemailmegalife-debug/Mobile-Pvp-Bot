@@ -1,0 +1,15 @@
+{
+  "name": "TrainingArena",
+  "observation_schema": 1,
+  "action_schema": 1,
+  "capture_width": 256,
+  "capture_height": 144,
+  "tick_hz": 15,
+  "health_roi": [0.02, 0.75, 0.33, 0.12],
+  "combat_roi": [0.25, 0.15, 0.5, 0.65],
+  "joystick": [0.16, 0.78, 0.12],
+  "camera": [0.75, 0.49],
+  "attack": [0.87, 0.73],
+  "jump": [0.89, 0.49],
+  "rewards": {"death": -10.0, "kill": 8.0, "damage": -0.5, "hit": 0.4, "stall": -0.05}
+}

@@ -1,0 +1,13 @@
+{
+  "model": "PvP-PPO",
+  "version": "0.0.0-untrained",
+  "observation_schema": 1,
+  "action_schema": 1,
+  "input_name": "observation",
+  "output_name": "action",
+  "input_shape": [1, 12],
+  "output_shape": [1, 6],
+  "trained_steps": 0,
+  "training_environment": "none",
+  "sha256": null
+}

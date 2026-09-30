@@ -1,0 +1,3 @@
+<resources>
+    <string name="gesture_description">Sends bounded touch gestures only when the agent is explicitly enabled in an allowed training environment.</string>
+</resources>

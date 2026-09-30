@@ -1,0 +1,9 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    namespace 'com.harvey.pvpagent'
+    compileSdk 35
+    defaultConfig { minSdk 29 }
+}
