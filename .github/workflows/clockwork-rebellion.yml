@@ -1,0 +1,101 @@
+name: Clockwork Rebellion music video
+on:
+  push:
+    branches: [codex/clockwork-rebellion-video-20261021]
+    paths:
+      - '.github/workflows/clockwork-rebellion.yml'
+      - 'Video/ClockworkRebellion/**'
+permissions:
+  contents: read
+concurrency:
+  group: clockwork-rebellion-render
+  cancel-in-progress: true
+jobs:
+  render:
+    name: Render from ${{ matrix.start }} seconds
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - {start: 0, end: 40}
+          - {start: 40, end: 80}
+          - {start: 80, end: 120}
+          - {start: 120, end: 160}
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+      LP_NUM_THREADS: '4'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install renderer
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1-mesa-dri ffmpeg fonts-dejavu-core
+          python -m pip install --quiet numpy==2.2.6 scipy==1.15.3 Pillow==11.2.1 moderngl==5.12.0
+      - name: Check 3D graphics
+        run: |
+          python -c "import moderngl; c=moderngl.create_standalone_context(require=330, backend='egl'); print('RENDERER_READY:', c.info['GL_RENDERER'])"
+      - name: Render review frames
+        if: matrix.start == 0
+        run: |
+          if test -f Video/ClockworkRebellion/render.py; then
+            python Video/ClockworkRebellion/render.py --width 960 --height 540 --preview 4 20 36 60 92 124 146
+            python Video/ClockworkRebellion/review.py
+          fi
+      - uses: actions/upload-artifact@v4
+        if: matrix.start == 0
+        with:
+          name: Clockwork-Rebellion-review
+          path: Video/ClockworkRebellion/output/frame-*.png
+          if-no-files-found: ignore
+      - name: Render animated sequence
+        run: |
+          if test -f Video/ClockworkRebellion/render.py; then
+            python Video/ClockworkRebellion/render.py --width 1920 --height 1080 --fps 24 --start ${{ matrix.start }} --end ${{ matrix.end }} --name part-${{ matrix.start }}.mp4
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Clockwork-Rebellion-part-${{ matrix.start }}
+          path: Video/ClockworkRebellion/output/part-*.mp4
+          if-no-files-found: ignore
+          retention-days: 7
+  package:
+    name: Assemble and verify finished music video
+    needs: render
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install audio and video tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python -m pip install --quiet numpy==2.2.6 scipy==1.15.3
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: Clockwork-Rebellion-part-*
+          merge-multiple: true
+          path: Video/ClockworkRebellion/output
+      - name: Soundtrack, assembly and verification
+        run: |
+          if test -f Video/ClockworkRebellion/audio.py; then
+            python Video/ClockworkRebellion/audio.py
+            python Video/ClockworkRebellion/package.py
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Clockwork-Rebellion-Full-Music-Video
+          path: |
+            Video/ClockworkRebellion/output/Clockwork-Rebellion.mp4
+            Video/ClockworkRebellion/output/verification.json
+            Video/ClockworkRebellion/README.md
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 90
