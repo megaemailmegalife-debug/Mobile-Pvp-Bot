@@ -135,4 +135,4 @@ mix[:int(.08*SR)]*=np.linspace(0,1,int(.08*SR))[:,None]
 mix[-int(1.5*SR):]*=np.linspace(1,0,int(1.5*SR))[:,None]
 out=os.path.join(os.path.dirname(__file__),'output');os.makedirs(out,exist_ok=True)
 wavfile.write(os.path.join(out,'clockwork-rebellion.wav'),SR,(mix*32767).astype(np.int16))
-print(json.dumps({'duration':DURATION,'sample_rate':SR,'peak_dbfs':20*np.log10(np.max(np.abs(mix))),'rms_dbfs':20*np.log10(np.sqrt(np.mean(mix**2)))}))
+print(json.dumps({'duration':DURATION,'sample_rate':SR,'peak_dbfs':float(20*np.log10(np.max(np.abs(mix)))),'rms_dbfs':float(20*np.log10(np.sqrt(np.mean(mix**2))))}))
