@@ -1,0 +1,58 @@
+name: Prepare Clockwork Rebellion web player video
+on:
+  push:
+    branches: [codex/clockwork-rebellion-video-20261021]
+    paths:
+      - .github/workflows/clockwork-web.yml
+permissions:
+  contents: write
+  actions: read
+jobs:
+  web-video:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: Clockwork-Rebellion-Full-Music-Video
+          run-id: 39696792805
+          github-token: ${{ github.token }}
+          path: /tmp/clockwork-master
+      - name: Install media tools
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - name: Make and verify streaming copy
+        shell: python
+        run: |
+          from pathlib import Path
+          import subprocess, json, hashlib
+          masters=list(Path("/tmp/clockwork-master").rglob("Clockwork-Rebellion.mp4"))
+          assert len(masters)==1, masters
+          src=masters[0]
+          assert hashlib.sha256(src.read_bytes()).hexdigest()=="e6c3d2c202e00fca9b5f61c0b9e870f7d2f47c92e9af7b52334cce82b40f214a"
+          out=Path("Video/ClockworkRebellion/web")
+          out.mkdir(parents=True,exist_ok=True)
+          dst=out/"clockwork-rebellion.mp4"
+          base=["ffmpeg","-y","-hide_banner","-loglevel","warning","-i",str(src),"-vf","hqdn3d=1.5:1.5:6:6,scale=1280:720:flags=lanczos","-c:v","libx264","-preset","slow","-b:v","1000k","-pix_fmt","yuv420p","-passlogfile","/tmp/clockwork-web"]
+          subprocess.run(base+["-pass","1","-an","-f","null","/dev/null"],check=True)
+          subprocess.run(base+["-pass","2","-c:a","aac","-b:a","128k","-movflags","+faststart",str(dst)],check=True)
+          subprocess.run(["ffmpeg","-y","-hide_banner","-loglevel","error","-ss","129","-i",str(dst),"-frames:v","1","-q:v","2",str(out/"poster.jpg")],check=True)
+          subprocess.run(["ffmpeg","-hide_banner","-v","error","-i",str(dst),"-f","null","-"],check=True)
+          metadata=json.loads(subprocess.check_output(["ffprobe","-v","error","-show_streams","-show_format","-of","json",str(dst)]))
+          assert abs(float(metadata["format"]["duration"])-160)<0.1
+          assert dst.stat().st_size<25*1024*1024
+          report={"file":dst.name,"bytes":dst.stat().st_size,"sha256":hashlib.sha256(dst.read_bytes()).hexdigest(),"duration":metadata["format"]["duration"],"width":1280,"height":720,"full_decode":"passed"}
+          (out/"verification.json").write_text(json.dumps(report,indent=2))
+          print("WEB_VIDEO_VERIFIED "+json.dumps(report))
+      - name: Save durable web assets on the video branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Video/ClockworkRebellion/web
+          git commit -m "Add verified browser-ready music video and poster"
+          git push origin HEAD:codex/clockwork-rebellion-video-20261021
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Clockwork-Rebellion-Web
+          path: Video/ClockworkRebellion/web
+          retention-days: 90
